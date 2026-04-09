@@ -1,9 +1,13 @@
-# Use Java 21 with FFmpeg pre-installed
-FROM jrottenberg/ffmpeg:4.4-ubuntu AS ffmpeg
 FROM eclipse-temurin:21-jdk-jammy
 
-# Copy FFmpeg from ffmpeg image
-COPY --from=ffmpeg /usr/local /usr/local
+# Install FFmpeg and Maven directly
+RUN apt-get update && \
+    apt-get install -y ffmpeg maven && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Verify FFmpeg installed correctly
+RUN ffmpeg -version
 
 # Set working directory
 WORKDIR /app
@@ -12,10 +16,8 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-# Install Maven and build the project
-RUN apt-get update && \
-    apt-get install -y maven && \
-    mvn clean package -DskipTests
+# Build the project
+RUN mvn clean package -DskipTests
 
 # Create temp folders
 RUN mkdir -p temp/input temp/output
