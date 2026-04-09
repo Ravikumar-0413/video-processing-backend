@@ -96,4 +96,43 @@ public class AudioToolsService {
         file.transferTo(inputFile);
         return inputFile;
     }
+    public File extractMp3(MultipartFile file,
+            String bitrate) throws IOException {
+
+File inputFile = saveInputFile(file);
+
+File outputFile = new File(
+ffmpegExecutor.getOutputDir()
++ "/audio_"
++ UUID.randomUUID()
++ ".mp3"
+);
+
+String validBitrate = getValidBitrate(bitrate);
+
+// ✅ Add this log to see exact command
+System.out.println("FFmpeg Path: " + ffmpegExecutor.getFfmpegPath());
+System.out.println("Input File: " + inputFile.getAbsolutePath());
+System.out.println("Output File: " + outputFile.getAbsolutePath());
+System.out.println("Input Exists: " + inputFile.exists());
+
+List<String> command = Arrays.asList(
+ffmpegExecutor.getFfmpegPath(),
+"-i",       inputFile.getAbsolutePath(),
+"-vn",
+"-acodec",  "mp3",
+"-ab",      validBitrate,
+"-y",
+outputFile.getAbsolutePath()
+);
+
+boolean success = ffmpegExecutor.execute(command);
+
+if (!success) {
+throw new RuntimeException("Audio extraction failed!");
+}
+
+inputFile.delete();
+return outputFile;
+}
 }
